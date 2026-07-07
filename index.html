@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nwajiunor Edgar-Odurombi — Data Scientist & Geospatial Analyst</title>
+<meta name="description" content="Nwajiunor (Temi) Edgar-Odurombi — Data scientist and geospatial analyst turning data into decisions across climate resilience, infrastructure, public health and humanitarian development.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Fraunces:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='40' fill='none' stroke='%2338e8b0' stroke-width='8'/><circle cx='50' cy='50' r='12' fill='%2338e8b0'/></svg>">
+<style>
+:root{
+  --bg:#0a0f14;
+  --bg-2:#0e151d;
+  --panel:#121b25;
+  --line:#1e2c3a;
+  --ink:#e8f0f2;
+  --ink-dim:#94a8b3;
+  --accent:#38e8b0;
+  --accent-2:#f5a623;
+  --mono:'JetBrains Mono',monospace;
+  --sans:'Space Grotesk',sans-serif;
+  --serif:'Fraunces',serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.65;overflow-x:hidden}
+::selection{background:var(--accent);color:#06281d}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+h1,h2,h3{line-height:1.15}
+
+/* ---------- top nav ---------- */
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;align-items:center;justify-content:space-between;
+  padding:14px 28px;background:rgba(10,15,20,.82);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.brand{font-family:var(--mono);font-size:15px;color:var(--ink);letter-spacing:.5px}
+.brand b{color:var(--accent)}
+.nav-links{display:flex;gap:22px;flex-wrap:wrap}
+.nav-links a{color:var(--ink-dim);font-size:13.5px;letter-spacing:.4px;text-transform:uppercase}
+.nav-links a:hover{color:var(--accent);text-decoration:none}
+.menu-btn{display:none;background:none;border:1px solid var(--line);color:var(--ink);font-family:var(--mono);padding:6px 12px;border-radius:6px;cursor:pointer}
+@media(max-width:900px){
+  .menu-btn{display:block}
+  .nav-links{display:none;position:absolute;top:100%;right:0;left:0;flex-direction:column;background:rgba(10,15,20,.97);padding:18px 28px;border-bottom:1px solid var(--line)}
+  .nav-links.open{display:flex}
+}
+
+/* ---------- hero ---------- */
+header{position:relative;height:100svh;min-height:640px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+#heromap{position:absolute;inset:0;z-index:1;filter:saturate(.85)}
+.hero-shade{position:absolute;inset:0;z-index:2;pointer-events:none;
+  background:radial-gradient(ellipse at center,rgba(10,15,20,.25) 0%,rgba(10,15,20,.78) 78%,var(--bg) 100%)}
+.hero-inner{position:relative;z-index:3;text-align:center;padding:0 20px;max-width:900px;pointer-events:none}
+.hero-inner a,.hero-inner .cta{pointer-events:auto}
+.kicker{font-family:var(--mono);color:var(--accent);font-size:13px;letter-spacing:2px;text-transform:uppercase;margin-bottom:18px}
+.hero-inner h1{font-size:clamp(38px,6.5vw,74px);font-weight:700;letter-spacing:-1px}
+.hero-inner h1 span{color:var(--accent)}
+.roles{font-family:var(--mono);font-size:clamp(14px,2vw,18px);color:var(--ink-dim);margin-top:16px;min-height:28px}
+.roles .cursor{display:inline-block;width:9px;background:var(--accent);animation:blink 1s steps(1) infinite;color:transparent}
+@keyframes blink{50%{opacity:0}}
+.hero-tag{font-family:var(--serif);font-style:italic;font-size:clamp(16px,2.4vw,21px);color:var(--ink-dim);margin-top:22px}
+.cta-row{margin-top:34px;display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.cta{display:inline-block;padding:12px 26px;border-radius:8px;font-size:15px;font-weight:600;letter-spacing:.3px}
+.cta.primary{background:var(--accent);color:#06281d}
+.cta.primary:hover{background:#5df2c3;text-decoration:none}
+.cta.ghost{border:1px solid var(--accent);color:var(--accent)}
+.cta.ghost:hover{background:rgba(56,232,176,.1);text-decoration:none}
+.coords{position:absolute;bottom:18px;left:24px;z-index:3;font-family:var(--mono);font-size:11.5px;color:var(--ink-dim);opacity:.85}
+.scroll-hint{position:absolute;bottom:18px;right:24px;z-index:3;font-family:var(--mono);font-size:11.5px;color:var(--ink-dim);animation:bob 2.2s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(6px)}}
+
+/* map pin glow */
+.pin{width:14px;height:14px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 rgba(56,232,176,.6);animation:pulse 2.4s infinite}
+.pin.amber{background:var(--accent-2);animation-name:pulse2}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(56,232,176,.55)}70%{box-shadow:0 0 0 16px rgba(56,232,176,0)}100%{box-shadow:0 0 0 0 rgba(56,232,176,0)}}
+@keyframes pulse2{0%{box-shadow:0 0 0 0 rgba(245,166,35,.55)}70%{box-shadow:0 0 0 16px rgba(245,166,35,0)}100%{box-shadow:0 0 0 0 rgba(245,166,35,0)}}
+.leaflet-popup-content-wrapper{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;font-family:var(--sans)}
+.leaflet-popup-tip{background:var(--panel)}
+.leaflet-popup-content b{color:var(--accent)}
+
+/* ---------- sections ---------- */
+section{max-width:1080px;margin:0 auto;padding:90px 24px 30px}
+.sec-label{font-family:var(--mono);color:var(--accent);font-size:13px;letter-spacing:2.5px;text-transform:uppercase;display:flex;align-items:center;gap:12px}
+.sec-label::after{content:"";flex:1;height:1px;background:var(--line)}
+section h2{font-size:clamp(28px,4vw,42px);margin:14px 0 26px;font-weight:700}
+.lead{color:var(--ink-dim);font-size:17px;max-width:760px}
+
+/* about */
+.about-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:40px;margin-top:10px}
+.about-grid p{margin-bottom:16px;color:#c9d6dc}
+.about-grid p.first::first-letter{font-family:var(--serif);font-size:52px;float:left;line-height:.9;padding-right:10px;color:var(--accent)}
+.philosophy{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:10px;padding:26px;height:fit-content}
+.philosophy .q{font-family:var(--serif);font-style:italic;font-size:19px;color:var(--ink)}
+.philosophy .who{font-family:var(--mono);font-size:12px;color:var(--ink-dim);margin-top:14px}
+.explore{margin-top:22px}
+.explore h3{font-family:var(--mono);font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-dim);margin-bottom:12px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-family:var(--mono);font-size:12.5px;padding:6px 12px;border:1px solid var(--line);border-radius:999px;color:#bfd2da;background:var(--bg-2)}
+.chip.hot{border-color:rgba(56,232,176,.5);color:var(--accent)}
+@media(max-width:800px){.about-grid{grid-template-columns:1fr}}
+
+/* what i do */
+.do-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin-top:8px}
+.do-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:24px;transition:transform .25s,border-color .25s}
+.do-card:hover{transform:translateY(-4px);border-color:rgba(56,232,176,.45)}
+.do-card .icon{font-size:24px;margin-bottom:12px}
+.do-card h3{font-size:17px;margin-bottom:8px}
+.do-card p{font-size:14px;color:var(--ink-dim)}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-top:36px}
+.stat{background:linear-gradient(160deg,var(--panel),var(--bg-2));border:1px solid var(--line);border-radius:12px;padding:22px;text-align:center}
+.stat .n{font-family:var(--mono);font-size:34px;font-weight:700;color:var(--accent)}
+.stat .l{font-size:13px;color:var(--ink-dim);margin-top:6px}
+
+/* projects */
+.proj{background:var(--panel);border:1px solid var(--line);border-radius:14px;margin-bottom:18px;overflow:hidden;transition:border-color .25s}
+.proj:hover{border-color:rgba(56,232,176,.4)}
+.proj summary{list-style:none;cursor:pointer;padding:26px 28px;display:flex;gap:18px;align-items:baseline;flex-wrap:wrap}
+.proj summary::-webkit-details-marker{display:none}
+.proj .num{font-family:var(--mono);color:var(--accent);font-size:14px}
+.proj .ttl{font-size:20px;font-weight:600;flex:1;min-width:220px}
+.proj .tags{display:flex;gap:6px;flex-wrap:wrap}
+.proj .tag{font-family:var(--mono);font-size:11px;padding:4px 10px;border-radius:999px;background:var(--bg-2);border:1px solid var(--line);color:var(--ink-dim)}
+.proj .arrow{font-family:var(--mono);color:var(--ink-dim);transition:transform .25s}
+.proj[open] .arrow{transform:rotate(90deg);color:var(--accent)}
+.proj-body{padding:0 28px 28px;display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:18px;border-top:1px dashed var(--line);padding-top:22px;margin:0 28px 28px;padding-left:0;padding-right:0}
+.pb h4{font-family:var(--mono);font-size:11.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+.pb p{font-size:14px;color:#c2cfd6}
+.proj-links{padding:0 28px 26px;font-family:var(--mono);font-size:13px}
+.proj-links a{margin-right:18px}
+
+/* experience */
+.xp{border-left:2px solid var(--line);margin-left:8px;padding-left:30px;position:relative}
+.xp-item{position:relative;padding-bottom:36px}
+.xp-item::before{content:"";position:absolute;left:-37px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--bg);border:2.5px solid var(--accent)}
+.xp-item .when{font-family:var(--mono);font-size:12.5px;color:var(--accent-2)}
+.xp-item h3{font-size:19px;margin:4px 0 2px}
+.xp-item .org{color:var(--ink-dim);font-size:14.5px;margin-bottom:10px}
+.xp-item p{font-size:15px;color:#c2cfd6;max-width:720px}
+
+/* skills */
+.skill-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.skill-box{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px}
+.skill-box h3{font-family:var(--mono);font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);margin-bottom:14px}
+.skill-box .chips .chip{background:var(--bg)}
+
+/* open source / speaking / community cards */
+.flat-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:26px;margin-bottom:16px}
+.flat-card h3{font-size:18px;margin-bottom:8px}
+.flat-card .meta{font-family:var(--mono);font-size:12.5px;color:var(--accent-2);margin-bottom:8px}
+.flat-card p{font-size:15px;color:#c2cfd6}
+
+/* blog */
+.blog-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.blog-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:24px;display:flex;flex-direction:column;transition:transform .25s,border-color .25s}
+.blog-card:hover{transform:translateY(-4px);border-color:rgba(56,232,176,.45);text-decoration:none}
+.blog-card .d{font-family:var(--mono);font-size:12px;color:var(--ink-dim)}
+.blog-card h3{font-size:16.5px;color:var(--ink);margin:8px 0 10px}
+.blog-card p{font-size:13.5px;color:var(--ink-dim);flex:1}
+.blog-card .r{font-family:var(--mono);font-size:12.5px;color:var(--accent);margin-top:14px}
+
+/* certifications */
+.cert-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.cert{background:var(--bg-2);border:1px solid var(--line);border-radius:10px;padding:18px 20px}
+.cert b{display:block;font-size:15px}
+.cert span{font-family:var(--mono);font-size:12.5px;color:var(--ink-dim)}
+
+/* contact */
+.contact-wrap{text-align:center;padding-bottom:40px}
+.contact-wrap h2{margin-bottom:14px}
+.contact-wrap p{max-width:640px;margin:0 auto 30px;color:var(--ink-dim);font-size:16.5px}
+.socials{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:30px}
+.socials a{font-family:var(--mono);font-size:13.5px;padding:10px 18px;border:1px solid var(--line);border-radius:8px;color:var(--ink-dim)}
+.socials a:hover{border-color:var(--accent);color:var(--accent);text-decoration:none}
+
+footer{border-top:1px solid var(--line);padding:34px 24px;text-align:center;color:var(--ink-dim);font-size:13.5px}
+footer .tagline{font-family:var(--serif);font-style:italic;font-size:17px;color:var(--ink);margin-bottom:8px}
+footer .sub{font-family:var(--mono);font-size:12px}
+
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease}
+.reveal.vis{opacity:1;transform:none}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="brand"><b>temi</b>waji<span style="color:var(--accent)">.</span></div>
+  <button class="menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('open')">menu</button>
+  <div class="nav-links">
+    <a href="#about">About</a>
+    <a href="#projects">Projects</a>
+    <a href="#experience">Experience</a>
+    <a href="#opensource">Open Source</a>
+    <a href="#writing">Writing</a>
+    <a href="#speaking">Speaking</a>
+    <a href="#contact">Contact</a>
+  </div>
+</nav>
+
+<header>
+  <div id="heromap"></div>
+  <div class="hero-shade"></div>
+  <div class="hero-inner">
+    <div class="kicker">Lagos, Nigeria · 6.5244° N, 3.3792° E</div>
+    <h1>Nwajiunor <span>Edgar-Odurombi</span></h1>
+    <div class="roles"><span id="typed"></span><span class="cursor">|</span></div>
+    <p class="hero-tag">Turning data into decisions — from city blocks to satellite orbits.</p>
+    <div class="cta-row">
+      <a class="cta primary" href="#projects">Explore my work</a>
+      <a class="cta ghost" href="#contact">Let's work together</a>
+    </div>
+  </div>
+  <div class="coords" id="coords">LAT 6.5244 · LON 3.3792 · ZOOM 2.4</div>
+  <div class="scroll-hint">▼ scroll to explore</div>
+</header>
+
+<!-- ================= ABOUT ================= -->
+<section id="about">
+  <div class="sec-label">01 · About</div>
+  <h2>I never planned to become a data scientist.</h2>
+  <div class="about-grid">
+    <div>
+      <p class="first">My academic journey began in architecture, where I developed a deep appreciation for design thinking, spatial reasoning, and solving complex real-world problems. Architecture taught me that every challenge has patterns waiting to be understood — it just requires the right perspective.</p>
+      <p>As I worked with increasingly complex planning and design problems, I became fascinated by the power of data to uncover those patterns. I realized that combining analytical thinking with technology could help solve challenges far beyond the built environment. That realization led me to transition into data science.</p>
+      <p>Since then, I have built expertise in data analytics, machine learning, visualization, and predictive modeling through intensive training, open-source collaboration, and practical projects. Today, my work sits at the intersection of data science and geospatial analytics, where I explore how spatial intelligence and machine learning can improve decision-making in infrastructure planning, climate resilience, public health, and humanitarian response.</p>
+      <p>I believe the most impactful data science doesn't just produce accurate models — it helps people make better decisions.</p>
+    </div>
+    <div>
+      <div class="philosophy">
+        <div class="q">"The value of data lies not in its volume, but in our ability to transform it into reliable insights that solve real-world problems."</div>
+        <div class="who">— my working philosophy</div>
+      </div>
+      <div class="explore">
+        <h3>Currently exploring</h3>
+        <div class="chips">
+          <span class="chip hot">Geospatial AI</span>
+          <span class="chip hot">Earth Observation</span>
+          <span class="chip hot">Climate Intelligence</span>
+          <span class="chip">Spatial Machine Learning</span>
+          <span class="chip">Humanitarian Data Science</span>
+          <span class="chip">Responsible AI</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="do-grid" style="margin-top:44px">
+    <div class="do-card"><div class="icon">🤖</div><h3>Machine Learning</h3><p>Predictive models for classification, regression, and clustering problems using modern ML techniques.</p></div>
+    <div class="do-card"><div class="icon">📊</div><h3>Data Analytics</h3><p>Cleaning, transforming, and interpreting structured data to generate actionable business insights.</p></div>
+    <div class="do-card"><div class="icon">🗺️</div><h3>Geospatial Analytics</h3><p>Spatial analysis with GIS tools and Python to solve geographically complex problems.</p></div>
+    <div class="do-card"><div class="icon">📈</div><h3>Data Storytelling</h3><p>Interactive dashboards and visualizations that speak to technical and non-technical audiences alike.</p></div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="n" data-count="11">0</div><div class="l">countries analyzed for climate & land-use monitoring</div></div>
+    <div class="stat"><div class="n" data-count="9">0</div><div class="l">analytics dashboards delivered to clients</div></div>
+    <div class="stat"><div class="n">Top 20<span style="font-size:18px;color:var(--ink-dim)">/102</span></div><div class="l">Women in Data Africa Datathon 2023</div></div>
+    <div class="stat"><div class="n" data-count="50">0</div><div class="l">% reduction in client reporting time</div></div>
+  </div>
+</section>
+
+<!-- ================= PROJECTS ================= -->
+<section id="projects">
+  <div class="sec-label">02 · Projects</div>
+  <h2>Field notes from the data frontier</h2>
+  <p class="lead" style="margin-bottom:30px">Every project here answers five questions: the challenge, why it matters, my approach, the results, and what it taught me. Click any card to read the full story.</p>
+
+  <details class="proj" open>
+    <summary>
+      <span class="num">P·01</span>
+      <span class="ttl">Urban Heat &amp; Vulnerable Populations — Lagos</span>
+      <span class="tags"><span class="tag">GeoPandas</span><span class="tag">Rasterio</span><span class="tag">Remote Sensing</span></span>
+      <span class="arrow">→</span>
+    </summary>
+    <div class="proj-body">
+      <div class="pb"><h4>The Challenge</h4><p>Lagos is heating up, but nobody knew precisely which neighbourhoods carry the highest combined burden of extreme land surface temperature and vulnerable residents.</p></div>
+      <div class="pb"><h4>Why It Matters</h4><p>Heat kills quietly — especially the elderly, children, and low-income communities in dense informal settlements. Targeted adaptation needs targeted maps.</p></div>
+      <div class="pb"><h4>My Approach</h4><p>Combined satellite-derived land surface temperature with population and demographic indicators in Python, building a reproducible pipeline to score and map heat-vulnerability hotspots.</p></div>
+      <div class="pb"><h4>Results</h4><p>Thematic hotspot maps identifying high-risk zones, presented at the Gendering AI Conference in Nairobi (2025) to inform climate adaptation and urban planning discussions.</p></div>
+      <div class="pb"><h4>Lessons Learned</h4><p>Spatial resolution is a policy decision, not just a technical one — the scale you map at determines who becomes visible in the data.</p></div>
+    </div>
+    <div class="proj-links"><a href="https://github.com/Temiwaji/Geospatial-Projects" target="_blank" rel="noopener">↗ GitHub repo</a></div>
+  </details>
+
+  <details class="proj">
+    <summary>
+      <span class="num">P·02</span>
+      <span class="ttl">Land Use × SDGs Across 11 Countries — Outreachy / Moja Global</span>
+      <span class="tags"><span class="tag">Python</span><span class="tag">GeoPandas</span><span class="tag">Open Source</span></span>
+      <span class="arrow">→</span>
+    </summary>
+    <div class="proj-body">
+      <div class="pb"><h4>The Challenge</h4><p>Land sector data across countries is messy, inconsistent, and rarely connected to the global goals it should inform.</p></div>
+      <div class="pb"><h4>Why It Matters</h4><p>Governments estimating greenhouse gas emissions from forestry and agriculture need clean, comparable geospatial evidence to drive climate policy.</p></div>
+      <div class="pb"><h4>My Approach</h4><p>Processed and analyzed geospatial datasets for 11 countries with Python (GeoPandas, Rasterio), mapping land-use attributes directly to relevant Sustainable Development Goals, and documented every workflow for the community.</p></div>
+      <div class="pb"><h4>Results</h4><p>Interactive notebooks and maps used by stakeholders to guide environmental sustainability policy, plus documentation that improved onboarding for new open-source contributors.</p></div>
+      <div class="pb"><h4>Lessons Learned</h4><p>In open source, reproducibility is generosity — code that only runs on your machine helps no one.</p></div>
+    </div>
+    <div class="proj-links"><a href="https://github.com/Temiwaji/Outreachy-Internship" target="_blank" rel="noopener">↗ GitHub repo</a> <a href="https://temiwaji.wordpress.com/2024/03/18/my-outreachy-internship-experience/" target="_blank" rel="noopener">↗ Read the story</a></div>
+  </details>
+
+  <details class="proj">
+    <summary>
+      <span class="num">P·03</span>
+      <span class="ttl">Loan Default Risk Prediction — 307K Applicants</span>
+      <span class="tags"><span class="tag">Classification</span><span class="tag">scikit-learn</span><span class="tag">Imbalanced Data</span></span>
+      <span class="arrow">→</span>
+    </summary>
+    <div class="proj-body">
+      <div class="pb"><h4>The Challenge</h4><p>Predict which loan applicants are likely to default, using the Home Credit dataset — 307,511 applicants described by 122 features, with heavily imbalanced classes.</p></div>
+      <div class="pb"><h4>Why It Matters</h4><p>Every false negative is money lost; every false positive is a creditworthy customer turned away. Risk models decide who gets access to finance.</p></div>
+      <div class="pb"><h4>My Approach</h4><p>Full ML workflow: business framing, missing-value strategy across 122 features, categorical encoding, train/validation/test splits, model training and threshold-aware evaluation focused on the business cost of each error type.</p></div>
+      <div class="pb"><h4>Results</h4><p>A documented, end-to-end classification pipeline weighing precision against recall in business terms, with clear recommendations for lending decisions.</p></div>
+      <div class="pb"><h4>Lessons Learned</h4><p>With imbalanced data, accuracy is a vanity metric — the confusion matrix is where the real conversation happens.</p></div>
+    </div>
+    <div class="proj-links"><a href="https://github.com/Temiwaji/loan-default-risk-prediction" target="_blank" rel="noopener">↗ GitHub repo</a></div>
+  </details>
+
+  <details class="proj">
+    <summary>
+      <span class="num">P·04</span>
+      <span class="ttl">House Price Prediction — Regularized Regression</span>
+      <span class="tags"><span class="tag">Ridge/Lasso</span><span class="tag">GridSearchCV</span><span class="tag">R² 0.855</span></span>
+      <span class="arrow">→</span>
+    </summary>
+    <div class="proj-body">
+      <div class="pb"><h4>The Challenge</h4><p>Estimate residential sale prices from 80 property features so a real estate company can price listings on evidence instead of gut feeling.</p></div>
+      <div class="pb"><h4>Why It Matters</h4><p>Overpricing means unsold inventory; underpricing means lost revenue — a systematic $10K underestimate across 50 sales is half a million dollars gone.</p></div>
+      <div class="pb"><h4>My Approach</h4><p>Compared OLS, Ridge, and Lasso regression with GridSearchCV tuning, full diagnostic analysis (residuals, Q-Q plots, learning curves), and feature selection on the Kaggle House Prices dataset.</p></div>
+      <div class="pb"><h4>Results</h4><p>Ridge Regression won with R² of 0.855 and RMSE of ~$34K on the held-out test set, plus ranked value-driver recommendations for agents (quality, living area, garage capacity).</p></div>
+      <div class="pb"><h4>Lessons Learned</h4><p>Regularization is humility encoded in math — admitting your features overlap makes your predictions stronger.</p></div>
+    </div>
+    <div class="proj-links"><a href="https://github.com/Temiwaji/house-price-prediction" target="_blank" rel="noopener">↗ GitHub repo</a></div>
+  </details>
+
+  <details class="proj">
+    <summary>
+      <span class="num">P·05</span>
+      <span class="ttl">Urban Green Space Mapping — Data Science Nigeria Mentorship</span>
+      <span class="tags"><span class="tag">Satellite Imagery</span><span class="tag">Sustainability</span></span>
+      <span class="arrow">→</span>
+    </summary>
+    <div class="proj-body">
+      <div class="pb"><h4>The Challenge</h4><p>Assess how urban green space is distributed — and who has access to it — by fusing satellite imagery with socio-environmental indicators.</p></div>
+      <div class="pb"><h4>Why It Matters</h4><p>Green space is climate infrastructure: it cools cities, cleans air, and supports wellbeing. Unequal distribution is an equity problem you can see from orbit.</p></div>
+      <div class="pb"><h4>My Approach</h4><p>Cleaned and validated multi-source datasets, integrated satellite imagery with ground indicators, and produced analysis supporting restoration and sustainability planning.</p></div>
+      <div class="pb"><h4>Results</h4><p>A validated multi-source dataset and green-space distribution assessment supporting sustainability analysis and restoration planning.</p></div>
+      <div class="pb"><h4>Lessons Learned</h4><p>Data fusion is 80% making sources agree with each other — projections, resolutions, and dates rarely align on their own.</p></div>
+    </div>
+    <div class="proj-links"><a href="https://www.linkedin.com/posts/nwajiunor-edgar-38274a1b6_geospatialdatascience-climate-development-activity-7364214970470875138-890E" target="_blank" rel="noopener">↗ Project write-up</a></div>
+  </details>
+
+  <details class="proj">
+    <summary>
+      <span class="num">P·06</span>
+      <span class="ttl">Data Storytelling — Women in Data Africa Datathon</span>
+      <span class="tags"><span class="tag">EDA</span><span class="tag">Top 20 / 102</span></span>
+      <span class="arrow">→</span>
+    </summary>
+    <div class="proj-body">
+      <div class="pb"><h4>The Challenge</h4><p>Analyze the FIFA Women's World Cup dataset and communicate findings compellingly — against 101 other teams, under datathon time pressure.</p></div>
+      <div class="pb"><h4>Why It Matters</h4><p>Insight that can't be communicated might as well not exist. Datathons compress the full analytics lifecycle into days.</p></div>
+      <div class="pb"><h4>My Approach</h4><p>Led data analysis and insight communication for the team: rigorous EDA, pattern recognition across a large international dataset, and a narrative built around the findings.</p></div>
+      <div class="pb"><h4>Results</h4><p>Ranked Top 20 out of 102 teams for analysis quality and data storytelling.</p></div>
+      <div class="pb"><h4>Lessons Learned</h4><p>A good chart answers a question; a great one makes the audience ask the next question themselves.</p></div>
+    </div>
+    <div class="proj-links"><a href="https://github.com/Temiwaji/Data-Science-Projects" target="_blank" rel="noopener">↗ GitHub repo</a></div>
+  </details>
+</section>
+
+<!-- ================= EXPERIENCE ================= -->
+<section id="experience">
+  <div class="sec-label">03 · Experience</div>
+  <h2>Impact, not job descriptions</h2>
+  <div class="xp" style="margin-top:34px">
+    <div class="xp-item">
+      <div class="when">Apr 2024 — Present</div>
+      <h3>Data Analyst · Freelance</h3>
+      <div class="org">Lagos, Nigeria</div>
+      <p>I help community, health, agriculture, and development-focused teams see their own work clearly. Nine dashboards later, client reporting time is down by half, and programme teams make decisions from evidence instead of instinct — tracking indicators I helped them define.</p>
+    </div>
+    <div class="xp-item">
+      <div class="when">Dec 2023 — Mar 2024</div>
+      <h3>Data Science Intern · Outreachy × Moja Global</h3>
+      <div class="org">Remote (open source)</div>
+      <p>My first professional tech role — and it spanned 11 countries. I turned raw land-use data into maps connected to the Sustainable Development Goals, and my workflow documentation became the onboarding path for the contributors who came after me.</p>
+    </div>
+    <div class="xp-item">
+      <div class="when">Aug 2022 — Mar 2023</div>
+      <h3>Data Science &amp; AI Fellow · Tech4Dev (Women Techsters)</h3>
+      <div class="org">Lagos, Nigeria</div>
+      <p>Led data processing and EDA for a mental-health solution within a cross-functional team of eight, shipping a working MVP in six weeks. This fellowship is where curiosity became craft.</p>
+    </div>
+    <div class="xp-item">
+      <div class="when">Dec 2020 — Mar 2023</div>
+      <h3>Founder &amp; Project Lead · RW Atelier</h3>
+      <div class="org">Lagos, Nigeria</div>
+      <p>Founded a community-focused architecture and planning practice, managing five client projects end-to-end, all delivered on budget and deadline. Translating spatial, environmental, and stakeholder insight into decisions here is precisely what led me to geospatial data science.</p>
+    </div>
+  </div>
+
+  <div class="skill-grid" style="margin-top:40px">
+    <div class="skill-box"><h3>Programming &amp; Data</h3><div class="chips"><span class="chip">Python</span><span class="chip">SQL</span><span class="chip">PostgreSQL/PostGIS</span><span class="chip">Git &amp; GitHub</span><span class="chip">Jupyter</span></div></div>
+    <div class="skill-box"><h3>Machine Learning</h3><div class="chips"><span class="chip">scikit-learn</span><span class="chip">Feature Engineering</span><span class="chip">Model Evaluation</span><span class="chip">Statistical Analysis</span></div></div>
+    <div class="skill-box"><h3>Geospatial</h3><div class="chips"><span class="chip">QGIS</span><span class="chip">ArcGIS</span><span class="chip">GeoPandas</span><span class="chip">Rasterio</span><span class="chip">Leafmap</span><span class="chip">Google Earth Engine</span></div></div>
+    <div class="skill-box"><h3>Visualization &amp; BI</h3><div class="chips"><span class="chip">Power BI</span><span class="chip">Tableau</span><span class="chip">Plotly</span><span class="chip">Matplotlib</span><span class="chip">Thematic Mapping</span></div></div>
+  </div>
+</section>
+
+<!-- ================= OPEN SOURCE ================= -->
+<section id="opensource">
+  <div class="sec-label">04 · Open Source</div>
+  <h2>Why open source matters to me</h2>
+  <div class="flat-card">
+    <p style="font-size:16.5px">I believe open-source software democratizes knowledge and creates opportunities for people around the world to learn, collaborate, and innovate together. Through <a href="https://www.outreachy.org/" target="_blank" rel="noopener">Outreachy</a>, I experienced firsthand how global communities build technology collectively — and it reinforced my commitment to contributing to projects that make data science and geospatial tools more accessible.</p>
+    <p style="margin-top:14px">With <a href="https://github.com/moja-global" target="_blank" rel="noopener">Moja Global</a> (a Linux Foundation project supporting climate action), I contributed geospatial analysis and documentation now used by stakeholders and new contributors alike. I'm one contribution at a time towards making the earth better.</p>
+  </div>
+</section>
+
+<!-- ================= WRITING ================= -->
+<section id="writing">
+  <div class="sec-label">05 · Writing</div>
+  <h2>Notes from the journey</h2>
+  <div class="blog-grid" style="margin-top:10px">
+    <a class="blog-card" href="https://temiwaji.wordpress.com/2024/03/18/my-outreachy-internship-experience/" target="_blank" rel="noopener">
+      <span class="d">Mar 2024 · Bits &amp; Soul Canvas</span>
+      <h3>My Outreachy Internship Experience</h3>
+      <p>Jet-setting around the globe without leaving my desk — what a geospatial analysis of 11 countries taught me about data, communication, and community.</p>
+      <span class="r">Read →</span>
+    </a>
+    <a class="blog-card" href="https://temiwaji.wordpress.com/2024/01/21/a-midway-update-on-my-geospatial-journey-with-moja-global/" target="_blank" rel="noopener">
+      <span class="d">Jan 2024 · Bits &amp; Soul Canvas</span>
+      <h3>A Midway Update on My Geospatial Journey</h3>
+      <p>How a project pivots in the real world: from mapping attributes to SDGs to a full country-by-country geospatial analysis.</p>
+      <span class="r">Read →</span>
+    </a>
+    <a class="blog-card" href="https://temiwaji.wordpress.com/2023/12/24/the-essence-of-contribution-in-open-source/" target="_blank" rel="noopener">
+      <span class="d">Dec 2023 · Bits &amp; Soul Canvas</span>
+      <h3>The Essence of Contribution in Open Source</h3>
+      <p>Contribution is the heartbeat of collaborative development — and it goes far beyond code.</p>
+      <span class="r">Read →</span>
+    </a>
+    <a class="blog-card" href="https://temiwaji.wordpress.com/" target="_blank" rel="noopener">
+      <span class="d">Blog</span>
+      <h3>Bits &amp; Soul Canvas</h3>
+      <p>Weaving tales on the soul canvas of bits and bytes — all my posts, plus more on <a href="https://medium.com/@temiwaji" target="_blank" rel="noopener">Medium</a>.</p>
+      <span class="r">Visit the blog →</span>
+    </a>
+  </div>
+</section>
+
+<!-- ================= SPEAKING ================= -->
+<section id="speaking">
+  <div class="sec-label">06 · Speaking</div>
+  <h2>Sharing the work out loud</h2>
+  <div class="flat-card">
+    <div class="meta">CONFERENCE TALK · NAIROBI, KENYA · AUG 2025</div>
+    <h3>Gendering AI Conference 2025</h3>
+    <p>Presented my geospatial analysis of urban heat and population vulnerability in Lagos — how spatial data can make invisible risk visible, and what that means for equitable climate adaptation.</p>
+  </div>
+  <div class="flat-card">
+    <div class="meta">ACCEPTED ABSTRACT · 2026</div>
+    <h3>African Data Science Conference 2026</h3>
+    <p>Abstract accepted — details coming soon. Watch this space.</p>
+  </div>
+
+  <h2 style="margin-top:60px;font-size:26px">Community</h2>
+  <p class="lead" style="margin-bottom:22px">I believe knowledge grows when it is shared. Beyond building models, I enjoy communities where people learn together, contribute to open source, and use data to solve meaningful problems.</p>
+  <div class="flat-card">
+    <div class="meta">SEP 2025 — PRESENT</div>
+    <h3>Secretary, MSc Data Science Class · Pan-Atlantic University</h3>
+    <p>Coordinating communications between students and faculty — because a class that shares information well learns better together.</p>
+  </div>
+  <div class="flat-card">
+    <div class="meta">JAN — JUL 2025</div>
+    <h3>Admission Screening Committee · Women Techsters Fellowship, Tech4Dev</h3>
+    <p>The fellowship changed my trajectory; reviewing applications is my way of holding the door open for the women coming through next.</p>
+  </div>
+  <div class="flat-card">
+    <div class="meta">MAR — APR 2025</div>
+    <h3>Application Reviewer · Deep Learning Indaba 2025</h3>
+    <p>Evaluating technical backgrounds and motivation to help build a fair, equitable selection for Africa's biggest machine learning gathering.</p>
+  </div>
+
+  <h2 style="margin-top:60px;font-size:26px">Education &amp; Certifications</h2>
+  <div class="cert-list" style="margin-top:20px">
+    <div class="cert"><b>M.Sc. Data Science</b><span>Pan-Atlantic University · 2025 — 2026 (in progress)</span></div>
+    <div class="cert"><b>Diploma, Data Science</b><span>AltSchool Africa · 2024</span></div>
+    <div class="cert"><b>B.Sc. Architecture</b><span>Obafemi Awolowo University · 2019</span></div>
+    <div class="cert"><b>Women Techsters Fellowship — Data Science &amp; AI</b><span>Tech4Dev · 2023</span></div>
+    <div class="cert"><b>GitHub Foundations</b><span>GitHub · 2025</span></div>
+  </div>
+</section>
+
+<!-- ================= CONTACT ================= -->
+<section id="contact">
+  <div class="sec-label">07 · Contact</div>
+  <div class="contact-wrap">
+    <h2>Let's work together</h2>
+    <p>Whether you're looking for a data scientist, a research collaborator, an open-source contributor, or someone passionate about applying machine learning to real-world challenges — I'd love to connect.</p>
+    <a class="cta primary" href="mailto:temiwaji@gmail.com">temiwaji@gmail.com</a>
+    <div class="socials">
+      <a href="https://www.linkedin.com/in/nwajiunor-edgar-38274a1b6/" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://github.com/Temiwaji" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://x.com/temiwaji" target="_blank" rel="noopener">X / Twitter</a>
+      <a href="https://www.instagram.com/temi_waji/" target="_blank" rel="noopener">Instagram</a>
+      <a href="https://temiwaji.wordpress.com/" target="_blank" rel="noopener">Blog</a>
+      <a href="https://medium.com/@temiwaji" target="_blank" rel="noopener">Medium</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="tagline">Turning data into decisions.</div>
+  <div class="sub">DATA SCIENCE &amp; ANALYTICS · GEOSPATIAL INTELLIGENCE</div>
+  <div style="margin-top:12px">© <span id="yr"></span> Nwajiunor Edgar-Odurombi · When I'm not mapping data, I'm chasing landscapes with a camera.</div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+/* ---------- hero map ---------- */
+var map = L.map('heromap',{zoomControl:false,attributionControl:false,scrollWheelZoom:false,dragging:!L.Browser.mobile})
+  .setView([12,10],2.4);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(map);
+
+function pin(lat,lng,html,amber){
+  var ic=L.divIcon({className:'',html:'<div class="pin'+(amber?' amber':'')+'"></div>',iconSize:[14,14]});
+  L.marker([lat,lng],{icon:ic}).addTo(map).bindPopup(html);
+}
+/* home base */
+pin(6.5244,3.3792,'<b>Lagos, Nigeria</b><br>Home base · Urban Heat &amp; Vulnerability mapping',true);
+pin(-1.2921,36.8219,'<b>Nairobi, Kenya</b><br>Presented at Gendering AI Conference 2025',true);
+/* Outreachy 11-country land-use × SDG analysis (selection) */
+pin(9.082,8.6753,'<b>Nigeria</b><br>Land use × SDG analysis · Moja Global');
+pin(-4.0383,21.7587,'<b>DR Congo</b><br>Land use × SDG analysis · Moja Global');
+pin(-14.235,-51.9253,'<b>Brazil</b><br>Land use × SDG analysis · Moja Global');
+pin(-0.7893,113.9213,'<b>Indonesia</b><br>Land use × SDG analysis · Moja Global');
+pin(56.1304,-106.3468,'<b>Canada</b><br>Land use × SDG analysis · Moja Global');
+pin(20.5937,78.9629,'<b>India</b><br>Land use × SDG analysis · Moja Global');
+pin(-25.2744,133.7751,'<b>Australia</b><br>Land use × SDG analysis · Moja Global');
+pin(1.3733,32.2903,'<b>Uganda</b><br>Land use × SDG analysis · Moja Global');
+pin(-13.1339,27.8493,'<b>Zambia</b><br>Land use × SDG analysis · Moja Global');
+pin(15.87,100.9925,'<b>Thailand</b><br>Land use × SDG analysis · Moja Global');
+pin(40.4637,-3.7492,'<b>Spain</b><br>Land use × SDG analysis · Moja Global');
+
+/* slow drift */
+var drift=setInterval(function(){map.panBy([0.4,0],{animate:false});},90);
+map.on('mousedown touchstart',function(){clearInterval(drift);});
+
+/* live coords readout */
+map.on('mousemove',function(e){
+  document.getElementById('coords').textContent=
+    'LAT '+e.latlng.lat.toFixed(4)+' · LON '+e.latlng.lng.toFixed(4)+' · ZOOM '+map.getZoom().toFixed(1);
+});
+
+/* ---------- typed roles ---------- */
+var roles=['Data Scientist','Geospatial Data Analyst','Machine Learning Practitioner','Open Source Contributor','Data Storyteller'];
+var ti=0,ci=0,del=false,el=document.getElementById('typed');
+(function type(){
+  var w=roles[ti];
+  el.textContent=w.slice(0,ci);
+  if(!del&&ci<w.length){ci++;setTimeout(type,70);}
+  else if(!del){del=true;setTimeout(type,1600);}
+  else if(ci>0){ci--;setTimeout(type,35);}
+  else{del=false;ti=(ti+1)%roles.length;setTimeout(type,300);}
+})();
+
+/* ---------- scroll reveal ---------- */
+document.querySelectorAll('section > *, .proj, .flat-card').forEach(function(n){n.classList.add('reveal');});
+var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('vis');io.unobserve(e.target);}});},{threshold:.08});
+document.querySelectorAll('.reveal').forEach(function(n){io.observe(n);});
+
+/* ---------- counters ---------- */
+var cio=new IntersectionObserver(function(es){
+  es.forEach(function(e){
+    if(!e.isIntersecting)return;
+    var el=e.target,target=+el.dataset.count,cur=0,step=Math.max(1,Math.round(target/40));
+    var t=setInterval(function(){cur+=step;if(cur>=target){cur=target;clearInterval(t);}el.textContent=cur;},30);
+    cio.unobserve(el);
+  });
+},{threshold:.5});
+document.querySelectorAll('[data-count]').forEach(function(n){cio.observe(n);});
+
+document.getElementById('yr').textContent=new Date().getFullYear();
+
+/* close mobile menu on click */
+document.querySelectorAll('.nav-links a').forEach(function(a){a.addEventListener('click',function(){document.querySelector('.nav-links').classList.remove('open');});});
+</script>
+</body>
+</html>
